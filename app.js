@@ -14,14 +14,16 @@ app.use('/', (req, res) => {
     let id = req.query.id;
     let url = "https://codeforces.com/api/user.info?handles=" + id;
     client.fetch(url, {}, (err, $, result) => {
-        //res.header("Access-Control-Allow-Origin", "YOUR_SITE");
         let pInfo = JSON.parse($.html()).result;
         if (pInfo == undefined) {
             console.log('no id!')
             return;
         }
-        console.log(`rating : ${pInfo[0].rank}`)
+        console.log(`id : ${id}`)
+        console.log(`rank : ${pInfo[0].rank}`)
         console.log(`rating : ${pInfo[0].rating}`)
+        console.log(`maxRank : ${pInfo[0].maxRank}`)
+        console.log(`maxRating : ${pInfo[0].maxRating}`)
     })
 })
 const server = app.listen(2021, () => {
