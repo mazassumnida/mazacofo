@@ -17,7 +17,7 @@ app.use('/', (req, res) => {
         //res.header("Access-Control-Allow-Origin", "YOUR_SITE");
         let pInfo = JSON.parse($.html()).result;
         if (pInfo == undefined) {
-            console.log('no id!!!!!!!!!!!!')
+            console.log('no id')
             return;
         }
         console.log(`rating : ${pInfo[0].rank}`)
