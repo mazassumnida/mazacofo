@@ -114,11 +114,11 @@ app.use('/', (req, res) => {
                 <text id="_1900" data-name="1900" transform="translate(311 90)" fill="${TIER_COLOR[userInfo.rank]}" font-size="10" font-family="Segoe UI Semibold, Segoe UI" font-weight="700"><tspan x="0" y="0">${(userInfo.rating - RANK_EXP[userInfo.rank]['min']) / (RANK_EXP[userInfo.rank]['max'] - RANK_EXP[userInfo.rank]['min']) * (334 - 19) + 8>=289 ? '' : RANK_EXP[userInfo.rank]['max']}</tspan></text>
             </g>
             <g id="max" transform="translate(188 -77.573)">
-                <text id="maxRank" transform="translate(20 104)" fill="#fff" font-size="12" font-family="Segoe UI Semibold, Segoe UI"><tspan x="0" y="0">Max Rank</tspan></text>
+                <text id="maxRank" transform="translate(20 100)" fill="#fff" font-size="12" font-family="Segoe UI Semibold, Segoe UI"><tspan x="0" y="0">Max Rank</tspan></text>
                 <text id="TopRating_" data-name="TopRating"
-            transform="translate(20 129)" fill="#fff" font-size="12" font-family="Segoe UI Semibold"><tspan x="0" y="0">Top Rating</tspan><tspan font-family="Segoe UI Semibold, Segoe UI" font-weight="600"><tspan x="0" y="14"></tspan></tspan></text>
-                <text id="Master-2" data-name="Master" transform="translate(20 106)" fill="${TIER_COLOR[userInfo.rank]}" font-size="12" font-family="Segoe UI Bold, Segoe UI" font-weight="700"><tspan x="0" y="9">${userInfo.maxRank}</tspan></text>
-                <text id="_2200" data-name="2200" transform="translate(20 133)" fill="${TIER_COLOR[userInfo.rank]}" font-size="12" font-family="Segoe UI Bold, Segoe UI" font-weight="700"><tspan x="0" y="9">${userInfo.maxRating}</tspan></text>
+            transform="translate(20 126)" fill="#fff" font-size="12" font-family="Segoe UI Semibold"><tspan x="0" y="0">Top Rating</tspan><tspan font-family="Segoe UI Semibold, Segoe UI" font-weight="600"><tspan x="0" y="14"></tspan></tspan></text>
+                <text id="Master-2" data-name="Master" transform="translate(20 106)" fill="${TIER_COLOR[userInfo.rank]}" font-size="0.9em" font-family="Segoe UI Bold, Segoe UI" font-weight="700"><tspan x="0" y="6">${userInfo.maxRank}</tspan></text>
+                <text id="_2200" data-name="2200" transform="translate(20 133)" fill="${TIER_COLOR[userInfo.rank]}" font-size="0.9em" font-family="Segoe UI Bold, Segoe UI" font-weight="700"><tspan x="0" y="7">${userInfo.maxRating}</tspan></text>
             </g>
     </svg>
     `)
