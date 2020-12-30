@@ -118,7 +118,7 @@ app.use('/', (req, res) => {
                 <text id="TopRating_" data-name="TopRating"
             transform="translate(20 126)" fill="#fff" font-size="12" font-family="Segoe UI Semibold"><tspan x="0" y="0">Top Rating</tspan><tspan font-family="Segoe UI Semibold, Segoe UI" font-weight="600"><tspan x="0" y="14"></tspan></tspan></text>
                 <text id="Master-2" data-name="Master" transform="translate(20 106)" fill="${TIER_COLOR[userInfo.rank]}" font-size="0.9em" font-family="Segoe UI Bold, Segoe UI" font-weight="700"><tspan x="0" y="6">${userInfo.maxRank}</tspan></text>
-                <text id="_2200" data-name="2200" transform="translate(20 133)" fill="${TIER_COLOR[userInfo.rank]}" font-size="0.9em" font-family="Segoe UI Bold, Segoe UI" font-weight="700"><tspan x="0" y="7">${userInfo.maxRating}</tspan></text>
+                <text id="_2200" data-name="2200" transform="translate(20 133)" fill="${TIER_COLOR[userInfo.rank]}" font-size="0.9em" font-family="Segoe UI Bold, Segoe UI" font-weight="700"><tspan x="0" y="8">${userInfo.maxRating}</tspan></text>
             </g>
     </svg>
     `)
