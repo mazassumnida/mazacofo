@@ -3,7 +3,7 @@ CodeForces 레이팅을 Github Readme에서 예쁘게 보여주는 프로젝트
 
 ## 주의사항
 - **1시간 간격으로 업데이트 됩니다.**
-- 이거 만든 사람들 newbie & unrated
+- ~~이거 만든 사람들 newbie & unrated~~
 
 ## Usage
 ```markdown
