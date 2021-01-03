@@ -102,18 +102,18 @@ app.use('/', (req, res) => {
     <rect width="350" height="131" fill="#fff"/>
     <rect id="CONTAINER" width="344" height="121" rx="20" transform="translate(3 5)" fill="#36393f"/>
     <g id="name_bar" data-name="name &amp; bar" transform="translate(0 15)">
-      <text id="USER_ID" transform="translate(178 15)" fill="${TIER_COLOR[userInfo.rank]}" font-size="26" font-family="SegoeUI-Bold, Segoe UI" font-weight="700"><tspan x="0" y="28">${userInfo.id}</tspan></text>
-      <text id="USER_RANK" transform="translate(18 15)" fill="${TIER_COLOR[userInfo.rank]}" font-size="16" font-family="SegoeUI-Bold, Segoe UI" font-weight="700"><tspan x="0" y="0">${userInfo.rank}</tspan></text>
+      <text id="USER_ID" transform="translate(330 15)" fill="${TIER_COLOR[userInfo.rank]}" font-size="1.8em" font-family="SegoeUI-Bold, Segoe UI" font-weight="700" text-anchor="end"><tspan x="0" y="28">${userInfo.id}</tspan></text>
+      <text id="USER_RANK" transform="translate(18 15)" fill="${TIER_COLOR[userInfo.rank]}" font-size="1em" font-family="SegoeUI-Bold, Segoe UI" font-weight="700"><tspan x="0" y="0">${userInfo.rank}</tspan></text>
       <rect id="EXP_BAR" width="315" height="6" transform="translate(18 56)" fill="#707070"/>
       <rect id="CUR_EXP_BAR" width="${(userInfo.rating - RANK_EXP[userInfo.rank]['min'])/(RANK_EXP[userInfo.rank]['max'] - RANK_EXP[userInfo.rank]['min']) * 315}" height="6" transform="translate(18 56)" fill="${TIER_COLOR[userInfo.rank]}"/>
-      <text id="CUR_EXP" transform="translate(${(userInfo.rating - RANK_EXP[userInfo.rank]['min'])/(RANK_EXP[userInfo.rank]['max'] - RANK_EXP[userInfo.rank]['min']) * 315 + 18} 73)" fill="${TIER_COLOR[userInfo.rank]}" font-size="10" font-family="SegoeUI-Bold, Segoe UI" font-weight="700"><tspan x="-12" y="0">${userInfo.rating}</tspan></text>
-      <text id="MAX_EXP" transform="translate(310 73)" fill="${TIER_COLOR[userInfo.rank]}" font-size="10" font-family="SegoeUI-Bold, Segoe UI" font-weight="700"><tspan x="0" y="0">${RANK_EXP[userInfo.rank]['max']}</tspan></text>
+      <text id="CUR_EXP" transform="translate(${(userInfo.rating - RANK_EXP[userInfo.rank]['min'])/(RANK_EXP[userInfo.rank]['max'] - RANK_EXP[userInfo.rank]['min']) * 315 + 18} 73)" fill="${TIER_COLOR[userInfo.rank]}" font-size="0.75em" font-family="SegoeUI-Bold, Segoe UI" font-weight="700"><tspan x="-12" y="0">${userInfo.rating}</tspan></text>
+      <text id="MAX_EXP" transform="translate(310 73)" fill="${TIER_COLOR[userInfo.rank]}" font-size="0.75em" font-family="SegoeUI-Bold, Segoe UI" font-weight="700"><tspan x="0" y="0">${RANK_EXP[userInfo.rank]['max']}</tspan></text>
     </g>
     <g id="max" transform="translate(-8 -18.573)">
-      <text id="top_rating" transform="translate(26 132.573)" fill="#fff" font-size="12" font-family="SegoeUI-Semibold, Segoe UI" font-weight="600"><tspan x="0" y="0">top rating</tspan></text>
-      <text id="max_rank" transform="translate(26 118.573)" fill="#fff" font-size="12" font-family="SegoeUI-Semibold, Segoe UI" font-weight="600"><tspan x="0" y="0">max rank</tspan></text>
-      <text id="cur_mak_rank" transform="translate(100 105.573)" fill="${TIER_COLOR[userInfo.maxRank]}" font-size="12" font-family="SegoeUI-Bold, Segoe UI" font-weight="700"><tspan x="0" y="13">${userInfo.maxRank}</tspan></text>
-      <text id="cur_top_rating" transform="translate(100 120.573)" fill="${TIER_COLOR[userInfo.maxRank]}" font-size="12" font-family="SegoeUI-Bold, Segoe UI" font-weight="700"><tspan x="0" y="13">${userInfo.maxRating}</tspan></text>
+      <text id="top_rating" transform="translate(26 132.573)" fill="#fff" font-size="0.78em" font-family="SegoeUI-Semibold, Segoe UI" font-weight="600"><tspan x="0" y="0">top rating</tspan></text>
+      <text id="max_rank" transform="translate(26 118.573)" fill="#fff" font-size="0.78em" font-family="SegoeUI-Semibold, Segoe UI" font-weight="600"><tspan x="0" y="0">max rank</tspan></text>
+      <text id="cur_mak_rank" transform="translate(100 105.573)" fill="${TIER_COLOR[userInfo.maxRank]}" font-size="0.78em" font-family="SegoeUI-Bold, Segoe UI" font-weight="700"><tspan x="0" y="13">${userInfo.maxRank}</tspan></text>
+      <text id="cur_top_rating" transform="translate(100 120.573)" fill="${TIER_COLOR[userInfo.maxRank]}" font-size="0.78em" font-family="SegoeUI-Bold, Segoe UI" font-weight="700"><tspan x="0" y="13">${userInfo.maxRating}</tspan></text>
     </g>
   </g>
 </svg>
