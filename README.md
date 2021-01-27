@@ -7,7 +7,7 @@ CodeForces 레이팅을 Github Readme에서 예쁘게 보여주는 프로젝트
 
 ## Usage
 ```markdown
-[![CodeForces Profile](http://cf.leed.at?id={handle})](https://codeforces.com/profile/{handle})
+[![CodeForces Profile](https://cf.leed.at?id={handle})](https://codeforces.com/profile/{handle})
 ```
 
 ## Screenshots
