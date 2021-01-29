@@ -1,0 +1,21 @@
+{
+  "name": "mazacofo",
+  "version": "1.1.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "concurrently \"node app.js\" \"node ./getDataIntervally/app.js\""
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "concurrently": "^5.3.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "fs": "0.0.1-security",
+    "mysql2": "^2.2.5",
+    "path": "^0.12.7"
+  }
+}
