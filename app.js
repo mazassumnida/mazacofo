@@ -5,108 +5,113 @@ const sql = require('./functional/sql');
 const fs = require('fs')
 
 app.use('/', (req, res) => {
-    res.setHeader('Content-Type', 'image/svg+xml');
-    // res.setHeader('cache-control', 'no-cache');
-    res.setHeader('Cache-Control', 'public, max-age=3600');
-    const id = req.query.id;
-    let userInfo = {
-        id: "",
-        rank: "",
-        rating: "",
-        maxRank: "",
-        maxRating: ""
-    };
+  res.setHeader('Content-Type', 'image/svg+xml');
+  // res.setHeader('cache-control', 'no-cache');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  if (!req.query.id) return;
+  const id = req.query.id;
+  let userInfo = {
+    id: "",
+    rank: "",
+    rating: "",
+    maxRank: "",
+    maxRating: ""
+  };
 
-    const TIER_COLOR = {
-        newbie: "#CBCBCB",
-        pupil: "#32D336",
-        specialist: "#00D9CC",
-        expert: "#656AFF",
-        'candidate master': "#EE00EE",
-        master: "#FF8C00",
-        'international master': "#FF8C00",
-        grandmaster: "#FC1212",
-        'international grandmaster': "#FC1212",
-        'legendary grandmaster': "#FC1212"
-    };
+  const TIER_COLOR = {
+    newbie: "#CBCBCB",
+    pupil: "#32D336",
+    specialist: "#00D9CC",
+    expert: "#656AFF",
+    'candidate master': "#EE00EE",
+    master: "#FF8C00",
+    'international master': "#FF8C00",
+    grandmaster: "#FC1212",
+    'international grandmaster': "#FC1212",
+    'legendary grandmaster': "#FC1212"
+  };
 
-    const RANK_EXP = {
-        newbie: {
-            displayName: "Newbie",
-            min: 0,
-            max: 1199
-        },
-        pupil: {
-            displayName: "Pupil",
-            min: 1200,
-            max: 1399
-        },
-        specialist: {
-            displayName: "Specialist",
-            min: 1400,
-            max: 1599
-        },
-        expert: {
-            displayName: "Expert",
-            min: 1600,
-            max: 1899
-        },
-        'candidate master': {
-            displayName: "Candidate Master",
-            min: 1900,
-            max: 2099
-        },
-        master: {
-            displayName: "Master",
-            min: 2100,
-            max: 2299
-        },
-        'international master': {
-            displayName: "International Master",
-            min: 2300,
-            max: 2399
-        },
-        grandmaster: {
-            displayName: "Grandmaster",
-            min: 2400,
-            max: 2599
-        },
-        'international grandmaster': {
-            displayName: "International Grandmaster",
-            min: 2600,
-            max: 2999
-        },
-        'legendary grandmaster': {
-            displayName: "Legendary Grandmaster",
-            min: 3000,
-            max: 5000
+  const RANK_EXP = {
+    newbie: {
+      displayName: "Newbie",
+      min: 0,
+      max: 1199
+    },
+    pupil: {
+      displayName: "Pupil",
+      min: 1200,
+      max: 1399
+    },
+    specialist: {
+      displayName: "Specialist",
+      min: 1400,
+      max: 1599
+    },
+    expert: {
+      displayName: "Expert",
+      min: 1600,
+      max: 1899
+    },
+    'candidate master': {
+      displayName: "Candidate Master",
+      min: 1900,
+      max: 2099
+    },
+    master: {
+      displayName: "Master",
+      min: 2100,
+      max: 2299
+    },
+    'international master': {
+      displayName: "International Master",
+      min: 2300,
+      max: 2399
+    },
+    grandmaster: {
+      displayName: "Grandmaster",
+      min: 2400,
+      max: 2599
+    },
+    'international grandmaster': {
+      displayName: "International Grandmaster",
+      min: 2600,
+      max: 2999
+    },
+    'legendary grandmaster': {
+      displayName: "Legendary Grandmaster",
+      min: 3000,
+      max: 5000
+    }
+  };
+  fs.stat('./memList/' + id + '.json', async (err1) => {
+    // 첫 사용 유저이면, 존재하는 핸들인지 확인한다.
+    if (err1) await getData.tier(id);
+    fs.stat('./memList/' + id + '.json', async (err2) => {
+      // 위에서 존재 확인한 핸들의 json 파일은 생성되도록 했지만
+      // 존재하지 않는다면 err2로 빠진다.
+      if (err2) return res.send('<svg>HANDLE NOT AVAILABLE</svg>');
+      // 첫 사용 유저였는데 파일은 생성되었다면 DB에 넣는다.
+      else if (err1 && !err2) sql.insertId(id);
+
+      fs.readFile('./memList/' + id + '.json', 'utf8', (err3, data) => {
+        if (err3) { console.log(err3); return; }
+
+        let pInfo = JSON.parse(data).result;
+        if (pInfo == undefined) {
+          console.log('no id!')
+          return;
         }
-    };
-    fs.stat('./memList/' + id + '.json', async (err1) => {
-        if (err1) await getData.tier(id);
-        fs.stat('./memList/' + id + '.json', async (err2) => {
-            if (err2) return res.send('<svg>HANDLE NOT AVAILABLE</svg>');
-            else if(err1 && !err2) sql.insertId(id);
 
-            fs.readFile('./memList/' + id + '.json', 'utf8', (err3, data) => {
-                if (err3) { console.log(err3); return; }
-
-                let pInfo = JSON.parse(data).result;
-                if (pInfo == undefined) {
-                    console.log('no id!')
-                    return;
-                }
-
-                userInfo.id = id;
-                userInfo.rank = pInfo[0].rank;
-                userInfo.rating = pInfo[0].rating;
-                userInfo.maxRank = pInfo[0].maxRank;
-                userInfo.maxRating = pInfo[0].maxRating;
-                // 중복호출시 userInfo.rank가 null인 상태로 호출된다
-                // 왜 중복호출될까..
-                if (RANK_EXP[userInfo.rank] != undefined) {
-                    if (userInfo.rank.length == 21) {
-                        res.send(`
+        userInfo.id = id;
+        userInfo.rank = pInfo[0].rank;
+        userInfo.rating = pInfo[0].rating;
+        userInfo.maxRank = pInfo[0].maxRank;
+        userInfo.maxRating = pInfo[0].maxRating;
+        // 중복호출시 userInfo.rank가 null인 상태로 호출된다
+        // 왜 중복호출될까..
+        if (RANK_EXP[userInfo.rank] != undefined) {
+          if (userInfo.rank.length == 21) {
+            res.send(`
                 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="350" height="131" viewBox="0 0 350 131">
   <defs>
     <clipPath id="clip-맞춤형_크기_39">
@@ -134,8 +139,8 @@ app.use('/', (req, res) => {
   </g>
 </svg>
 `)
-                    } else
-                        res.send(`
+          } else
+            res.send(`
           <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="350" height="131" viewBox="0 0 350 131">
   <defs>
     <clipPath id="clip-맞춤형_크기_39">
@@ -162,11 +167,11 @@ app.use('/', (req, res) => {
 </svg>
 
           `)
-                }
-            });
-        })
+        }
+      });
     })
+  })
 });
 const server = app.listen(2021, () => {
-    console.log('server has started on 2021');
+  console.log('server has started on 2021');
 })
