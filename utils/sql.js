@@ -11,7 +11,7 @@ const connection = mysql2.createPool({
 sql.insertData = async ({ handle, rank, rating, maxRank, maxRating }) => {
     if (!handle) return;
     try {
-        const [rows] = await connection.query('INSERT INTO clients(handle, rank, rating, maxRank, topRating) VALUES(?)', [handle, rank, rating, maxRank, maxRating])
+        const [rows] = await connection.query('INSERT INTO clients(clients.handle, clients.rank, clients.rating, clients.maxRank, clients.topRating) VALUES(?, ?, ?, ?, ?)', [handle, rank, rating, maxRank, maxRating])
     } catch (error) {
         console.error(error)
     }
@@ -19,7 +19,7 @@ sql.insertData = async ({ handle, rank, rating, maxRank, maxRating }) => {
 sql.updateRank = async ({ handle, rank, rating, maxRank, maxRating }) => {
     if (!handle) return;
     try {
-        const [rows] = await connection.query('UPDATE clients SET rank=?, rating=?, maxRank=?, topRating=? WHERE handle=?', [rank, rating, maxRank, maxRating, handle])
+        const [rows] = await connection.query(`UPDATE clients AS c SET c.rank=?, c.rating=?, c.maxRank=?, c.topRating=? WHERE c.handle=?`, [rank, rating, maxRank, maxRating, handle])
     } catch (error) {
         console.error(error)
     }
