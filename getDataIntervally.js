@@ -1,7 +1,7 @@
 const mysql2 = require('mysql2');
 const dotenv = require('dotenv');
-const cofo = require('../utils/cofo');
-const sql = require('../utils/sql')
+const cofo = require('./utils/cofo');
+const sql = require('./utils/sql')
 dotenv.config()
 const connection = mysql2.createPool({
   host: process.env.MYSQL_HOST,
