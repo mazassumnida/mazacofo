@@ -23,25 +23,23 @@ app.use('/', (req, res) => {
     maxRating: ""
   };
   
-  
-  fs.stat('./memList/' + id + '.json', async (err1) => {
-    // 첫 사용 유저이면, 존재하는 핸들인지 확인한다.
-    if (err1) await getData.tier(id);
-    fs.stat('./memList/' + id + '.json', async (err2) => {
-      // 위에서 존재 확인한 핸들의 json 파일은 생성되도록 했지만
-      // 존재하지 않는다면 err2로 빠진다.
-      if (err2) return res.send('<svg>handle not available</svg>');
-      // 첫 사용 유저였는데 파일은 생성되었다면 DB에 넣는다.
-      else if (err1 && !err2) sql.insertId(id);
-
-      fs.readFile('./memList/' + id + '.json', 'utf8', (err3, data) => {
-        if (err3) { console.log(err3); return; }
-
-        const pInfo = JSON.parse(data).result;
-        if (pInfo == undefined) {
-          console.log('no id!')
-          return;
-        }
+  const { exists, rows } = await sql.getClient(id)
+  if (!exists) {
+    const { status, result } = await cofo.getTier(id)
+    if (status === "FAILED") return { status, userInfo }
+    await sql.insertData(result[0])
+    userInfo.id = id;
+    userInfo.rank = result[0].rank;
+    userInfo.rating = result[0].rating;
+    userInfo.maxRank = result[0].maxRank;
+    userInfo.maxRating = result[0].maxRating;
+  } else {
+    userInfo.id = id;
+    userInfo.rank = rows[0].rank;
+    userInfo.rating = rows[0].rating;
+    userInfo.maxRank = rows[0].maxRank;
+    userInfo.maxRating = rows[0].topRating;
+  }
 
         userInfo.id = id;
         userInfo.rank = pInfo[0].rank;
