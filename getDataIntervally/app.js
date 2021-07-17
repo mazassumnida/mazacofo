@@ -10,14 +10,15 @@ const connection = mysql2.createPool({
   database: process.env.MYSQL_DB
 });
 const run = (async () => {
-  const clients = await sql.getClients()
+  // const clients = await sql.getClients()
+  const clients = [{ handle: 'oksussu' }]
   clients.map(async ({ handle }) => {
     const { status, result } = await cofo.getTier(handle)
     if (status === "FAILED") return
 
     const isExisting = await sql.checkIfExists(handle)
-    !isExisting && await sql.insertData(result)
-    isExisting && await sql.updateRank(result)
+    !isExisting && await sql.insertData(result[0])
+    isExisting && await sql.updateRank(result[0])
   })
 
 })()
