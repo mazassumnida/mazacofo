@@ -1,4 +1,4 @@
-FROM node:12-alpine
+FROM node:14
 WORKDIR /home/ubuntu/node
 COPY package*.json ./
 RUN npm install -g
