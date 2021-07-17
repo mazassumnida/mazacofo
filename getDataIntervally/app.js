@@ -1,6 +1,7 @@
 const mysql2 = require('mysql2');
 const dotenv = require('dotenv');
-const getData = require('../utils/getData');
+const cofo = require('../utils/cofo');
+const sql = require('../utils/sql')
 dotenv.config()
 const connection = mysql2.createPool({
   host: process.env.MYSQL_HOST,
@@ -8,20 +9,19 @@ const connection = mysql2.createPool({
   password: process.env.MYSQL_PW,
   database: process.env.MYSQL_DB
 });
-(() => {
-  connection.query('SELECT * FROM clients', (err, res, fields) => {
-    if (err) return console.log(err)
-    res.map(async (val) => {
-      await getData.tier(val.handle);
-    })
+const run = (async () => {
+  const clients = await sql.getClients()
+  clients.map(async ({ handle }) => {
+    const { status, result } = await cofo.getTier(handle)
+    if (status === "FAILED") return
+
+    const isExisting = await sql.checkIfExists(handle)
+    !isExisting && await sql.insertData(result)
+    isExisting && await sql.updateRank(result)
   })
-})();
+
+})()
 setInterval(() => {
-  connection.query('SELECT * FROM clients', (err, res, fields) => {
-    if (err) return console.log(err)
-    res.map(async (val) => {
-      await getData.tier(val.handle);
-    })
-  })
+  run()
 }, 3600000);
 console.log('get cf data intervally');
