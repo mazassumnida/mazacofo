@@ -1,6 +1,6 @@
 const mysql2 = require('mysql2');
 const dotenv = require('dotenv');
-const getData = require('../functional/getData');
+const getData = require('../utils/getData');
 dotenv.config()
 const connection = mysql2.createPool({
   host: process.env.MYSQL_HOST,
@@ -10,6 +10,7 @@ const connection = mysql2.createPool({
 });
 (() => {
   connection.query('SELECT * FROM clients', (err, res, fields) => {
+    if (err) return console.log(err)
     res.map(async (val) => {
       await getData.tier(val.handle);
     })
@@ -17,6 +18,7 @@ const connection = mysql2.createPool({
 })();
 setInterval(() => {
   connection.query('SELECT * FROM clients', (err, res, fields) => {
+    if (err) return console.log(err)
     res.map(async (val) => {
       await getData.tier(val.handle);
     })
