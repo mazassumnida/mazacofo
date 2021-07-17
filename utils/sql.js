@@ -24,11 +24,11 @@ sql.updateRank = async ({ handle, rank, rating, maxRank, maxRating }) => {
         console.error(error)
     }
 }
-sql.checkIfExists = async (id) => {
+sql.getClient = async (id) => {
     try {
         const [rows] = await connection.query(`SELECT * FROM clients WHERE handle=?`, [id])
-        const ret = rows?.length ? true : false
-        return ret
+        const exists = rows?.length ? true : false
+        return { exists, rows }
     } catch (error) {
         console.error(error)
     }
