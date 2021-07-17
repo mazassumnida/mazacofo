@@ -9,19 +9,19 @@ const connection = mysql2.createPool({
   password: process.env.MYSQL_PW,
   database: process.env.MYSQL_DB
 });
-const run = (async () => {
-  // const clients = await sql.getClients()
-  const clients = [{ handle: 'oksussu' }]
-  clients.map(async ({ handle }) => {
-    const { status, result } = await cofo.getTier(handle)
-    if (status === "FAILED") return
+const run = async () => {
+  const clientList = await sql.getClients()
+  const clientStr = clientList.reduce((prev, { handle }) => `${handle};${prev}`, "")
+  const { status, result } = await cofo.getTier(clientStr)
+  if (status === "FAILED") return
 
-    const isExisting = await sql.checkIfExists(handle)
-    !isExisting && await sql.insertData(result[0])
-    isExisting && await sql.updateRank(result[0])
+  result.map(async ({ handle }, index) => {
+    const {exists, rows} = await sql.getClient(handle)
+    !exists && await sql.insertData(result[index])
+    exists && await sql.updateRank(result[index])
   })
-
-})()
+}
+run()
 setInterval(() => {
   run()
 }, 3600000);
