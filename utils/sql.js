@@ -12,5 +12,6 @@ sql.insertId = (id) => {
     if (!id) return;
     connection.query('INSERT INTO clients(handle) VALUES(?)', [id], (err, res, fields) => {
         if (err) console.log(err);
+        else console.log(res)
     })
 }
