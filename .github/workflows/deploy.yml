@@ -11,6 +11,17 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+    - name: Create .env file
+      run: |
+        echo "MYSQL_HOST=$MYSQL_HOST" >> .env
+        echo "MYSQL_USER=$MYSQL_USER" >> .env
+        echo "MYSQL_PW=$MYSQL_PW" >> .env
+        echo "MYSQL_DB=$MYSQL_DB" >> .env
+      env:
+        MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
+        MYSQL_USER: ${{ secrets.MYSQL_USER }}
+        MYSQL_PW: ${{ secrets.MYSQL_PW }}
+        MYSQL_DB: ${{ secrets.MYSQL_DB }}
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1.6.0
     - name: Login Docker hub
@@ -24,3 +35,12 @@ jobs:
         file: ./Dockerfile
         push: true
         tags: dongzoolee/mazacofo
+    - name: Deploy to server
+      uses: appleboy/ssh-action@v0.1.4
+      with:
+        host: ${{ secrets.SERVER_HOST }}          
+        username: ${{ secrets.SERVER_USERNAME }}
+        password: ${{ secrets.SERVER_PASSWORD }}
+        script: | 
+          docker pull dongzoolee/mazacofo:latest
+          docker run -d dongzoolee/mazacofo --name mazacofo -p 2021:2021
