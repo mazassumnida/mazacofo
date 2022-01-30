@@ -13,6 +13,7 @@ jobs:
       uses: actions/checkout@v2
     - name: Create .env file
       run: |
+        touch .env
         echo "MYSQL_HOST=$MYSQL_HOST" >> .env
         echo "MYSQL_USER=$MYSQL_USER" >> .env
         echo "MYSQL_PW=$MYSQL_PW" >> .env
@@ -43,4 +44,4 @@ jobs:
         password: ${{ secrets.SERVER_PASSWORD }}
         script: | 
           docker pull dongzoolee/mazacofo:latest
-          docker run -d dongzoolee/mazacofo --name mazacofo -p 2021:2021
+          docker run -d --name mazacofo -p 2021:2021 dongzoolee/mazacofo
