@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --coverage",
     "start": "concurrently \"node app.js\" \"node ./tasks/cron.js\""
   },
   "author": "",
@@ -15,8 +15,11 @@
     "cron": "^1.8.2",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "fs": "0.0.1-security",
     "mysql2": "^2.2.5",
     "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "jest": "^27.4.7",
+    "sinon": "^13.0.0"
   }
 }
