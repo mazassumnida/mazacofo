@@ -44,5 +44,10 @@ jobs:
         username: ${{ secrets.SERVER_USERNAME }}
         password: ${{ secrets.SERVER_PASSWORD }}
         script: | 
+          if [ "$( docker container inspect -f '{{.State.Status}}' mazacofo )" == "running" ]; then 
+            docker container stop mazacofo
+            docker container rm mazacofo
+          fi
+          docker image rm dongzoolee/mazacofo
           docker pull dongzoolee/mazacofo:latest
           docker run -d --name mazacofo -p 2021:2021 dongzoolee/mazacofo
