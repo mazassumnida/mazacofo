@@ -34,9 +34,10 @@ jobs:
     - name: Build and push Docker images
       uses: docker/build-push-action@v2.8.0
       with:
+        context: .
         file: ./Dockerfile
         push: true
-        tags: dongzoolee/mazacofo
+        tags: dongzoolee/mazacofo:latest
     - name: Deploy to server
       uses: appleboy/ssh-action@v0.1.4
       with:
