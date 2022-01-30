@@ -14,7 +14,6 @@ jobs:
     - name: Create .env file
       run: |
         touch .env
-        ls -a .
         echo "MYSQL_HOST=$MYSQL_HOST" >> .env
         echo "MYSQL_USER=$MYSQL_USER" >> .env
         echo "MYSQL_PW=$MYSQL_PW" >> .env
