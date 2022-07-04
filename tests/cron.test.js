@@ -1,18 +1,18 @@
 /* eslint-disable no-new */
-const sinon = require('sinon');
-const cron = require('cron');
+const sinon = require("sinon");
+const cron = require("cron");
 
-describe('cron', () => {
+describe("cron", () => {
   let clock;
 
   beforeEach(() => {
     clock = sinon.useFakeTimers();
   });
 
-  describe('with cron', () => {
-    it('should run every hour (0 */60 * * * *)', done => {
+  describe("with cron", () => {
+    it("should run every hour (0 */60 * * * *)", (done) => {
       const callback = jest.fn();
-      const job = new cron.CronJob('0 */60 * * * *', callback, null, true);
+      const job = new cron.CronJob("0 */60 * * * *", callback, null, true);
 
       expect(callback).not.toBeCalled();
 

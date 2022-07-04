@@ -20,7 +20,7 @@ app.use("/", async (req, res) => {
   const handleFormat = id.replace(/[a-zA-Z0-9-_]/g, "");
   if (handleFormat)
     return res.send(
-      "<svg>handle should only contain Latin letters, digits, underscore or dash characters</svg>"
+      "<svg>handle should only contain Latin letters, digits, underscore or dash characters</svg>",
     );
 
   // get user rank, rating

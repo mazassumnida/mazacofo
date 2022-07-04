@@ -19,7 +19,7 @@ SVGs.svgDataForLGM = (userInfo) => {
   }" font-size="1.8em" font-family="SegoeUI-Bold, Segoe UI, system-ui, -apple-system" font-weight="700" text-anchor="end"><tspan x="0" y="28"><tspan fill="#000000">${
     userInfo.id[0]
   }</tspan><tspan fill="#FC1212">${userInfo.id.substring(
-    1
+    1,
   )}</tspan></tspan></text>
   <text id="USER_RANK" transform="translate(18 15)" fill="${
     TIER_COLOR[userInfo.rank]
