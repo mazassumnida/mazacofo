@@ -18,11 +18,13 @@ jobs:
         echo "MYSQL_USER=$MYSQL_USER" >> .env
         echo "MYSQL_PW=$MYSQL_PW" >> .env
         echo "MYSQL_DB=$MYSQL_DB" >> .env
+        echo "WEBHOOK_URL=$WEBHOOK_URL" >> .env
       env:
         MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
         MYSQL_USER: ${{ secrets.MYSQL_USER }}
         MYSQL_PW: ${{ secrets.MYSQL_PW }}
         MYSQL_DB: ${{ secrets.MYSQL_DB }}
+        WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1.6.0
     - name: Login Docker hub
