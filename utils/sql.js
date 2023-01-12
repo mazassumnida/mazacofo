@@ -50,3 +50,10 @@ sql.getClients = async () => {
     console.error(error);
   }
 };
+sql.removeClient = async (handle) => {
+  try {
+    await connection.query(`DELETE FROM clients WHERE handle=?`, [handle]);
+  } catch (error) {
+    console.error(error);
+  }
+};

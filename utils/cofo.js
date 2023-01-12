@@ -1,6 +1,6 @@
 const cofo = (module.exports = {});
 const axios = require("axios");
-
+const sql = require("./sql");
 const logger = require("./logger");
 
 cofo.getTier = async (id) => {
@@ -17,7 +17,12 @@ cofo.getTier = async (id) => {
       return await cofo.getTier(changedHandle);
     }
 
-    logger.exception(error.response.data.comment);
+    const reg = new RegExp("handles: User with handle (.*?) not found");
+    const errorMessage = error.response.data.comment;
+    const matched = errorMessage.match(reg);
+    if (matched && matched[1]) sql.removeClient(matched[1]);
+
+    logger.exception(`${error.response.data.comment} and was removed.`);
 
     return { status: "FAILED", result: [] };
   }
