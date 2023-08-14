@@ -1,0 +1,17 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model clients {
+  idx       Int     @id @default(autoincrement())
+  handle    String  @unique
+  rank      String? @db.VarChar(25)
+  rating    Int?
+  maxRank   String? @db.VarChar(25)
+  topRating Int?
+}
