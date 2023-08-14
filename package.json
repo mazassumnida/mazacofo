@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "dev": "nodemon --exec ts-node src/index.ts",
+    "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/index.ts",
     "start": "node -r ts-node/register/transpile-only ./dist/index.js",
     "test": "jest",
     "build": "babel src --out-dir dist",
