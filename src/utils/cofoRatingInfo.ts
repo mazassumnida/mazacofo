@@ -1,5 +1,8 @@
-const cofoRatingInfo = (module.exports = {});
-cofoRatingInfo.TIER_COLOR = {
+import { TRank } from "packages/codeforces/typing";
+
+type THexColor = `#${string}`;
+
+export const TIER_COLOR: { [rank in TRank]: THexColor } = {
   newbie: "#CBCBCB",
   pupil: "#32D336",
   specialist: "#00D9CC",
@@ -12,7 +15,7 @@ cofoRatingInfo.TIER_COLOR = {
   "legendary grandmaster": "#FC1212",
 };
 
-const COLOR_CODE = {
+export const COLOR_CODE: { [color: string]: THexColor[] } = {
   GRAY: ["#968A87", "#808080", "#96878F"],
   GREEN: ["#089630", "#008000", "#399608"],
   MINT: ["#069ABF", "#03A89E", "#06BF7E"],
@@ -22,7 +25,7 @@ const COLOR_CODE = {
   RED: ["#E82C0C", "#FF0000", "#E80C7A"],
 };
 
-cofoRatingInfo.MINI_COLOR = {
+export const MINI_COLOR: { [rank in TRank]: (typeof COLOR_CODE)[0] } = {
   newbie: COLOR_CODE.GRAY,
   pupil: COLOR_CODE.GREEN,
   specialist: COLOR_CODE.MINT,
@@ -35,7 +38,13 @@ cofoRatingInfo.MINI_COLOR = {
   "legendary grandmaster": COLOR_CODE.RED,
 };
 
-cofoRatingInfo.RANK_EXP = {
+export const RANK_EXP: {
+  [rank in TRank]: {
+    displayName: string;
+    min: number;
+    max: number;
+  };
+} = {
   newbie: {
     displayName: "Newbie",
     min: 0,
