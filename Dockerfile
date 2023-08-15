@@ -1,7 +1,7 @@
-FROM node:14
+FROM node:18
 WORKDIR /home/ubuntu/node
-COPY package*.json ./
-RUN npm install -g
+COPY package.json yarn.lock ./
+RUN yarn install
 COPY . .
-CMD ["npm", "start"]
+CMD ["yarn", "start"]
 EXPOSE 2021
