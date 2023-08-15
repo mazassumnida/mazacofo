@@ -2,12 +2,12 @@ import "dotenv/config";
 
 import express from "express";
 
+import { getUserTierDataAndUpdateClient } from "packages/codeforces/services/user-profile/user-profile-service";
 import {
   svgDataForLGM,
   svgDataForGeneralRating,
   svgDataMini,
 } from "./utils/SVGs";
-import { getUserTierDataAndUpdateClient } from "packages/codeforces/services/user-profile/user-profile-service";
 
 const app = express();
 
@@ -20,10 +20,11 @@ app.get("/", async (req, res) => {
 
   if (!id) return res.send("<svg>handle cannot be empty</svg>");
   const handleFormat = id.replace(/[a-zA-Z0-9-_]/g, "");
-  if (handleFormat)
+  if (handleFormat) {
     return res.send(
       "<svg>handle should only contain Latin letters, digits, underscore or dash characters</svg>",
     );
+  }
 
   try {
     const userProfile = await getUserTierDataAndUpdateClient(id);
@@ -33,7 +34,7 @@ app.get("/", async (req, res) => {
 
     if (mini) {
       return res.send(svgDataMini(userProfile));
-    } else if (userProfile.rank === "legendary grandmaster") {
+    } if (userProfile.rank === "legendary grandmaster") {
       return res.send(svgDataForLGM(userProfile));
     }
 

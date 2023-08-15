@@ -1,5 +1,5 @@
-import { connection } from "./connection";
 import type { TRank } from "packages/codeforces/typing";
+import { connection } from "./connection";
 
 export type TClient = {
   handle: string;
@@ -10,7 +10,9 @@ export type TClient = {
 };
 
 export const insertClient = async (client: TClient) => {
-  const { handle, rank, rating, maxRank, topRating } = client;
+  const {
+    handle, rank, rating, maxRank, topRating,
+  } = client;
 
   try {
     const [rows] = await connection.query(
@@ -23,7 +25,9 @@ export const insertClient = async (client: TClient) => {
 };
 
 export const updateClient = async (client: TClient) => {
-  const { handle, rank, rating, maxRank, topRating } = client;
+  const {
+    handle, rank, rating, maxRank, topRating,
+  } = client;
   try {
     const [rows] = await connection.query(
       `UPDATE clients AS c SET c.rank=?, c.rating=?, c.maxRank=?, c.topRating=? WHERE c.handle=?`,

@@ -32,11 +32,8 @@ export type TUserProfile = TGetUserProfileApiResponseBody["result"][0];
 
 export class GetUserProfileApi extends BaseCodeForcesApi<TGetUserProfileApiResponseBody> {
   method: "GET" = "GET";
-  pathname: string = "/api/user.info";
 
-  constructor() {
-    super();
-  }
+  pathname: string = "/api/user.info";
 
   setHandles(handles: string[]) {
     this.queryStrings = {

@@ -1,3 +1,4 @@
+// eslint-disable-next-line max-classes-per-file
 import { AxiosError } from "axios";
 
 import { BaseCodeForcesApi } from "./base-api";
@@ -14,7 +15,9 @@ export class NoProfileRedirectionError extends Error {
 
 export class HeadUserProfileApi extends BaseCodeForcesApi<THeadUserProfileApiResponseBody> {
   method: "HEAD" = "HEAD";
+
   pathname: string = "/profile/{{handle}}";
+
   pathnameParams: Record<string, string>;
 
   handle: string;
@@ -41,7 +44,7 @@ export class HeadUserProfileApi extends BaseCodeForcesApi<THeadUserProfileApiRes
       });
     } catch (e) {
       const axiosError = e as AxiosError<any, any>;
-      const response = axiosError.response;
+      const { response } = axiosError;
 
       if (response?.status === 302) {
         return response;

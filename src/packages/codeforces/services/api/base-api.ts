@@ -1,3 +1,4 @@
+// eslint-disable-next-line max-classes-per-file
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 
 type TMethod = "GET" | "HEAD";
@@ -30,8 +31,11 @@ export abstract class BaseCodeForcesApi<TData extends any> {
   baseUrl: string = "https://codeforces.com";
 
   method: TMethod | null = null;
+
   pathname: string | null = null;
+
   pathnameParams: Record<string, string> | null = null;
+
   queryStrings: Record<string, string> | null = null;
 
   convertQueryStringsToSearchParams(): URLSearchParams {
@@ -42,6 +46,7 @@ export abstract class BaseCodeForcesApi<TData extends any> {
     return new URLSearchParams(this.queryStrings);
   }
 
+  // eslint-disable-next-line class-methods-use-this
   applyHandlebarsToPathname(pathname: string, params: Record<string, string>) {
     const handleBarsRegex = /{{\s*([a-zA-Z0-9]+)\s*}}/g;
     return pathname.replace(handleBarsRegex, (_, key) => params[key]);
@@ -61,14 +66,14 @@ export abstract class BaseCodeForcesApi<TData extends any> {
     const urlObj = new URL(pathnameAdjusted, this.baseUrl);
 
     if (this.method === "GET") {
-      return await axios.get(urlObj.toString(), {
+      return axios.get(urlObj.toString(), {
         params: this.convertQueryStringsToSearchParams(),
         ...configOverrides,
       });
     }
 
     if (this.method === "HEAD") {
-      return await axios.head(urlObj.toString(), configOverrides);
+      return axios.head(urlObj.toString(), configOverrides);
       // TODO:
     }
 
