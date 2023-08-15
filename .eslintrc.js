@@ -28,5 +28,6 @@ module.exports = {
   rules: {
     "@typescript-eslint/quotes": "off",
     "operator-linebreak": "off",
+    "import/prefer-default-export": "off",
   },
 };
