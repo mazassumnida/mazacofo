@@ -3,14 +3,13 @@ name: Deploy mazacofo
 on:
   push:
     branches: [ master ]
-  #pull_request:
-    #branches: [ master ]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+
     - name: Create .env file
       run: |
         touch .env
@@ -25,31 +24,48 @@ jobs:
         MYSQL_PW: ${{ secrets.MYSQL_PW }}
         MYSQL_DB: ${{ secrets.MYSQL_DB }}
         WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1.6.0
-    - name: Login Docker hub
-      uses: docker/login-action@v1.12.0
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
       with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Build and push Docker images
-      uses: docker/build-push-action@v2.8.0
-      with:
-        context: .
-        file: ./Dockerfile
-        push: true
-        tags: dongzoolee/mazacofo:latest
+        aws-region: ap-northeast-2
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build and Push image to ECR - client
+      env:
+        REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        REPOSITORY: mazacofo
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f ./Dockerfile .
+        docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
     - name: Deploy to server
       uses: appleboy/ssh-action@v0.1.4
+      env:
+        REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        TAG: ${{ github.sha }}
+        REPOSITORY: mazacofo
+        PORT_: 2021
       with:
         host: ${{ secrets.SERVER_HOST }}          
         username: ${{ secrets.SERVER_USERNAME }}
         password: ${{ secrets.SERVER_PASSWORD }}
+        envs: REGISTRY, TAG, REPOSITORY, PORT_
         script: | 
-          if [ "$( docker container inspect -f '{{.State.Status}}' mazacofo )" == "running" ]; then 
-            docker container stop mazacofo
-            docker container rm mazacofo
+          if [ "$( docker container inspect -f '{{.State.Status}}' $REPOSITORY )" == "running" ]; then 
+            docker container stop $REPOSITORY
+            docker container rm $REPOSITORY
           fi
-          docker image rm dongzoolee/mazacofo
-          docker pull dongzoolee/mazacofo:latest
-          docker run -d --name mazacofo -p 2021:2021 dongzoolee/mazacofo
+          docker image rmi $(docker images '$REGISTRY/$REPOSITORY')
+
+          aws ecr get-login-password --region ap-northeast-2 \
+            | docker login --username AWS --password-stdin 889566267001.dkr.ecr.ap-northeast-2.amazonaws.com
+
+          docker pull $REGISTRY/$REPOSITORY:$TAG
+          docker run -d --name $REPOSITORY -p $PORT_:$PORT_ $REGISTRY/$REPOSITORY:$TAG
