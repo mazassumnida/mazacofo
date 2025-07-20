@@ -87,6 +87,8 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ env.IMAGE_TAG }}
+    outputs:
+      registry: ${{ steps.login-ecr.outputs.registry }}
 
   deploy:
     needs: build_server
@@ -95,7 +97,7 @@ jobs:
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.2.0
         env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REGISTRY: ${{ needs.build_server.outputs.registry }}
           TAG: ${{ github.sha }}
           REPOSITORY: mazacofo
           PORT: ${{ secrets.PORT }}
