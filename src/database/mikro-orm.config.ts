@@ -13,7 +13,6 @@ export default defineConfig({
   dbName: process.env.MYSQL_DB,
   baseDir: process.cwd(),
   entities: ['dist/**/*.entity.js'],
-  entitiesTs: ['src/**/*.entity.ts'],
   migrations:
     process.env.MAZA_ENV === 'production'
       ? { path: join(process.cwd(), 'dist/migrations') }
