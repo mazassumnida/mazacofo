@@ -48,6 +48,8 @@ export class SchedulerService {
         insertedHandles.push(p.handle);
       }
 
+      await em.commit();
+
       this.logger.log(
         `Successfully updated ${updatedHandles.length} clients (${updatedHandles.join(
           ',',
@@ -58,10 +60,12 @@ export class SchedulerService {
           ',',
         )})`,
       );
-    } catch (error) {
-      this.logger.error('Error updating Codeforces data:', error);
-    } finally {
-      await em.commit();
+    } catch (e) {
+      await em.rollback();
+
+      this.logger.error('Error updating Codeforces data:', e);
+
+      throw e;
     }
   }
 }
