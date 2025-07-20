@@ -1,0 +1,61 @@
+#!/bin/bash
+
+source ./.env
+
+bind="./maza"
+
+y(){
+    export SENTRYCLI_SKIP_DOWNLOAD=1
+    yarn $@
+}
+
+run() {
+    local target=${1:-all}
+    shift
+
+    case $target in
+    server)
+        y start:dev
+        ;;
+    esac
+}
+migrate() {
+    local action=${1:-all}
+    shift
+
+    case $action in
+        generate)
+            y mikro-orm migration:create
+        ;;
+        run)
+            y mikro-orm migration:up
+        ;;
+        down)
+            y mikro-orm migration:down
+        ;;
+    esac
+}
+concurrently() {
+    # `--raw`:
+    #     Output only raw output of processes, disables prettifying and concurrently coloring.
+    #
+    # `--kill-others`:
+    #     It will kill other processes if one exits or dies and prevent the development server from
+    #     starting without dependencies like a database.
+    #
+    # `| cat`:
+    #     The Create React App(CRA)'s command will automatically clear the previous console output,
+    #     and that's troublesome because it also clears the other console output written by Docker and Django.
+    #     So far, there is no option for disabling this CRA's behavior, but it can be achieved by piping
+    #     the CRA's output to the cat commmand. See https://github.com/facebook/create-react-app/issues/794.
+    yarn concurrently --raw --kill-others-on-fail "$@"
+}
+
+if [ "$#" -eq "0" ]; then
+    help
+    exit 0
+fi
+
+trap exit SIGINT
+
+eval "$@"

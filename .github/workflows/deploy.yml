@@ -1,71 +1,120 @@
-name: Deploy mazacofo
+name: Deployment(production)
 
 on:
   push:
-    branches: [ master ]
+    branches: [release]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
+  prepare:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    - name: Create .env file
-      run: |
-        touch .env
-        echo "MYSQL_HOST=$MYSQL_HOST" >> .env
-        echo "MYSQL_USER=$MYSQL_USER" >> .env
-        echo "MYSQL_PW=$MYSQL_PW" >> .env
-        echo "MYSQL_DB=$MYSQL_DB" >> .env
-        echo "WEBHOOK_URL=$WEBHOOK_URL" >> .env
-      env:
-        MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
-        MYSQL_USER: ${{ secrets.MYSQL_USER }}
-        MYSQL_PW: ${{ secrets.MYSQL_PW }}
-        MYSQL_DB: ${{ secrets.MYSQL_DB }}
-        WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+      - name: Set outputs
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-region: ap-northeast-2
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Create .env file
+        run: |
+          touch .env
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
+          echo "MAZA_ENV=$MAZA_ENV" >> .env
+          echo "PORT=$PORT" >> .env
 
-    - name: Build and Push image to ECR - client
-      env:
-        REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        REPOSITORY: mazacofo
-        IMAGE_TAG: ${{ github.sha }}
-      run: |
-        docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f ./Dockerfile .
-        docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+          echo "MYSQL_HOST=$MYSQL_HOST" >> .env
+          echo "MYSQL_USER=$MYSQL_USER" >> .env
+          echo "MYSQL_PASSWORD=$MYSQL_PASSWORD" >> .env
+          echo "MYSQL_DB=$MYSQL_DB" >> .env
 
-    - name: Deploy to server
-      uses: appleboy/ssh-action@v0.1.4
-      env:
-        REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        TAG: ${{ github.sha }}
-        REPOSITORY: mazacofo
-        PORT_: 2021
-      with:
-        host: ${{ secrets.SERVER_HOST }}          
-        username: ${{ secrets.SERVER_USERNAME }}
-        password: ${{ secrets.SERVER_PASSWORD }}
-        envs: REGISTRY, TAG, REPOSITORY, PORT_
-        script: | 
-          if [ "$( docker container inspect -f '{{.State.Status}}' $REPOSITORY )" == "running" ]; then 
-            docker container stop $REPOSITORY
-            docker container rm $REPOSITORY
-          fi
-          docker image rmi $(docker images '$REGISTRY/$REPOSITORY')
+          echo "SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN" >> .env
+        env:
+          MAZA_ENV: 'production'
+          PORT: ${{ secrets.PORT }}
+          MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          MYSQL_DB: ${{ secrets.MYSQL_DB }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
-          aws ecr get-login-password --region ap-northeast-2 \
-            | docker login --username AWS --password-stdin 889566267001.dkr.ecr.ap-northeast-2.amazonaws.com
+      - name: Upload workspace
+        uses: actions/upload-artifact@v4
+        with:
+          name: workspace
+          include-hidden-files: true
+          path: |
+            .
+            !./node_modules
+    outputs:
+      sha_short: ${{ steps.vars.outputs.sha_short }}
 
-          docker pull $REGISTRY/$REPOSITORY:$TAG
-          docker run -d --name $REPOSITORY -p $PORT_:$PORT_ $REGISTRY/$REPOSITORY:$TAG
+  build_server:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download workspace
+        uses: actions/download-artifact@v4
+        with:
+          name: workspace
+          path: .
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ap-northeast-2
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push image to ECR - client
+        uses: docker/build-push-action@v6
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: mazacofo
+          IMAGE_TAG: ${{ github.sha }}
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ env.IMAGE_TAG }}
+
+  deploy:
+    needs: build_server
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          TAG: ${{ github.sha }}
+          REPOSITORY: mazacofo
+          PORT: ${{ secrets.PORT }}
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          passphrase: ${{ secrets.SERVER_PASSWORD }}
+          key: ${{ secrets.SSH_LEED_AT_KEY }}
+          envs: REGISTRY, TAG, REPOSITORY, PORT
+          script: |
+            aws ecr get-login-password --region ap-northeast-2 \
+              | docker login --username AWS --password-stdin 889566267001.dkr.ecr.ap-northeast-2.amazonaws.com
+
+            docker pull $REGISTRY/$REPOSITORY:$TAG
+
+            if [ "$( docker container inspect -f '{{.ID}}' $REPOSITORY )" ]; then 
+              docker container stop $REPOSITORY
+              docker container rm $REPOSITORY -f
+            fi
+            docker run -d --name $REPOSITORY --restart=always --network=mysql_network -p $PORT:$PORT $REGISTRY/$REPOSITORY:$TAG
+
+            docker image prune --all --force
