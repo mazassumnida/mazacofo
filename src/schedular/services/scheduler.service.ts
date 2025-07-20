@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { SentryCron } from '@sentry/nestjs';
 import { MikroORM } from '@mikro-orm/core';
 
 import { ClientService } from '@/packages/client/services/client.service';
@@ -16,6 +17,15 @@ export class SchedulerService {
   ) {}
 
   @Cron(CronExpression.EVERY_MINUTE)
+  @SentryCron('update-codeforces-data', {
+    schedule: {
+      type: 'crontab',
+      value: CronExpression.EVERY_MINUTE,
+    },
+    checkinMargin: 2,
+    maxRuntime: 3,
+    timezone: 'Asia/Seoul',
+  })
   async updateCodeforcesData() {
     const em = this.orm.em.fork();
     this.logger.log('Starting Codeforces data update...');
