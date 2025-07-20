@@ -1,48 +1,26 @@
-# Build stage
-FROM node:18-alpine AS builder
-
+# STEP 1: Install dependencies
+FROM node:22.12-alpine AS deps
 WORKDIR /app
+COPY package.json yarn.lock ./
+RUN yarn --frozen-lockfile
 
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm ci --only=production
-
-# Copy source code
+# STEP 2: Build
+FROM node:22.12-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN yarn build
 
-# Build the application
-RUN npm run build
-
-# Production stage
-FROM node:18-alpine
+# Step 3: Expose
+FROM node:22.12-alpine AS runner
+RUN apk add --no-cache tzdata vim
+ENV TZ=Asia/Seoul
+RUN cp /usr/share/zoneinfo/$TZ /etc/localtime
+ENV NODE_ENV=production
 
 WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install only production dependencies
-RUN npm ci --only=production && npm cache clean --force
-
-# Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
+COPY --from=deps /app/node_modules ./node_modules
+COPY package.json yarn.lock tsconfig.* .env ./
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nestjs -u 1001
-
-# Change ownership of the app directory
-RUN chown -R nestjs:nodejs /app
-USER nestjs
-
-# Expose port
-EXPOSE 2021
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node healthcheck.js
-
-# Start the application
-CMD ["node", "dist/main.js"]
+CMD ["sh", "-c", "yarn mikro-orm migration:up --config './dist/database/mikro-orm.config.js' ; yarn start:prod"]
