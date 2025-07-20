@@ -2,6 +2,7 @@
   "name": "mazacofo",
   "version": "1.1.0",
   "description": "Codeforces rating badge generator",
+  "license": "MIT",
   "scripts": {
     "build": "NODE_OPTIONS=--max_old_space_size=4096 nest build && yarn sentry:sourcemaps",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
