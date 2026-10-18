@@ -68,7 +68,7 @@ export class BadgeController {
       return res.end(SvgUtils.svgDataForGeneralRating(client));
     } catch (e) {
       if (e instanceof CodeforcesError) {
-        if (e.message === 'Profile not found') {
+        if (e.type === 'NOT_FOUND') {
           return res
             .status(HttpStatus.NOT_FOUND)
             .end('<svg>Codeforces profile not found</svg>');
