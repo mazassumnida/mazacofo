@@ -3,14 +3,17 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { SentryCron } from '@sentry/nestjs';
 import { MikroORM } from '@mikro-orm/core';
 
+import { Client } from '@/packages/client/entities/client.entity';
 import { ClientService } from '@/packages/client/services/client.service';
 import {
   CodeforcesError,
   CodeforcesService,
-  TCodeforcesProfile,
+  TCodeforcesBulkResult,
 } from '@/packages/codeforces/services/codeforces.service';
 
 export const UNAVAILABLE_ALERT_THRESHOLD = 30;
+
+const toHandleKey = (handle: string) => handle.toLowerCase();
 
 @Injectable()
 export class SchedulerService {
@@ -45,18 +48,54 @@ export class SchedulerService {
       return;
     }
 
-    const profiles = await this.fetchProfiles(handles);
-    if (!profiles) {
+    const result = await this.fetchProfiles(handles);
+    if (!result) {
       return;
     }
 
     await em.begin();
 
+    const clientsByHandle = new Map<string, Client>(
+      clientList.map((client) => [toHandleKey(client.handle), client]),
+    );
     const updatedHandles: string[] = [],
-      insertedHandles: string[] = [];
+      insertedHandles: string[] = [],
+      renamedHandles: string[] = [],
+      removedHandles: string[] = [];
     try {
-      for (const p of profiles) {
-        const c = await this.clientService.getClient(em, p.handle);
+      for (const { from, to } of result.renamedHandles) {
+        const client = clientsByHandle.get(toHandleKey(from));
+        if (!client) {
+          continue;
+        }
+        clientsByHandle.delete(toHandleKey(from));
+
+        if (clientsByHandle.has(toHandleKey(to))) {
+          this.clientService.removeClient(em, client);
+          removedHandles.push(from);
+          continue;
+        }
+
+        this.clientService.renameClient(em, client, to);
+        clientsByHandle.set(toHandleKey(to), client);
+        renamedHandles.push(`${from} -> ${to}`);
+      }
+
+      for (const handle of result.missingHandles) {
+        const client = clientsByHandle.get(toHandleKey(handle));
+        if (!client) {
+          continue;
+        }
+        clientsByHandle.delete(toHandleKey(handle));
+
+        this.clientService.removeClient(em, client);
+        removedHandles.push(handle);
+      }
+
+      for (const p of result.profiles) {
+        const c =
+          clientsByHandle.get(toHandleKey(p.handle)) ??
+          (await this.clientService.getClient(em, p.handle));
         if (c) {
           this.clientService.updateClient(em, c, p);
           updatedHandles.push(p.handle);
@@ -86,16 +125,28 @@ export class SchedulerService {
         ',',
       )})`,
     );
+    if (renamedHandles.length > 0) {
+      this.logger.warn(
+        `Renamed ${renamedHandles.length} clients (${renamedHandles.join(',')})`,
+      );
+    }
+    if (removedHandles.length > 0) {
+      this.logger.warn(
+        `Removed ${removedHandles.length} clients missing on Codeforces (${removedHandles.join(
+          ',',
+        )})`,
+      );
+    }
   }
 
   private async fetchProfiles(
     handles: string[],
-  ): Promise<TCodeforcesProfile[] | null> {
+  ): Promise<TCodeforcesBulkResult | null> {
     try {
-      const profiles =
+      const result =
         await this.codeforcesService.getBulkCodeforcesProfile(handles);
       this.consecutiveUnavailableRuns = 0;
-      return profiles;
+      return result;
     } catch (e) {
       if (!(e instanceof CodeforcesError) || e.type !== 'UNAVAILABLE') {
         this.consecutiveUnavailableRuns = 0;

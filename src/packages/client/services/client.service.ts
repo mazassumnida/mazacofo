@@ -51,6 +51,18 @@ export class ClientService {
     return client;
   }
 
+  renameClient(em: EntityManager, client: Client, handle: string) {
+    client.handle = handle;
+
+    em.persist(client);
+
+    return client;
+  }
+
+  removeClient(em: EntityManager, client: Client) {
+    em.remove(client);
+  }
+
   async getOrCreateClient(em: EntityManager, handle: string) {
     const c = await this.getClient(em, handle);
     if (c) {
