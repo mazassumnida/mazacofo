@@ -39,8 +39,22 @@ export class CodeforcesError extends Error {
   }
 }
 
+export interface TCodeforcesRenamedHandle {
+  from: string;
+  to: string;
+}
+
+export interface TCodeforcesBulkResult {
+  profiles: TCodeforcesProfile[];
+  renamedHandles: TCodeforcesRenamedHandle[];
+  missingHandles: string[];
+}
+
+export const MAX_MISSING_HANDLES_PER_RUN = 5;
+
 const CODEFORCES_REQUEST_TIMEOUT_MS = 15_000;
 const CODEFORCES_BULK_RETRY_DELAYS_MS: readonly number[] = [2_000, 4_000];
+const CODEFORCES_API_INTERVAL_MS = 2_000;
 
 const NOT_FOUND_PATTERN = /handles: User with handle (.+?) not found/;
 const CALL_LIMIT_COMMENT = 'Call limit exceeded';
@@ -49,6 +63,12 @@ const PROFILE_LOCATION_PATTERN =
 
 const sleep = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+const isSameHandle = (a: string, b: string) =>
+  a.toLowerCase() === b.toLowerCase();
+
+const findHandle = (handles: string[], handle: string): string | null =>
+  handles.find((candidate) => isSameHandle(candidate, handle)) ?? null;
 
 const readComment = (data: TCodeforcesBody | undefined): string | null => {
   if (typeof data !== 'object' || data === null || data.status !== 'FAILED') {
@@ -138,17 +158,90 @@ export class CodeforcesService {
 
   async getBulkCodeforcesProfile(
     handles: string[],
-  ): Promise<TCodeforcesProfile[]> {
+  ): Promise<TCodeforcesBulkResult> {
     try {
-      return await this.requestWithRetry(
-        handles.join(';'),
-        CODEFORCES_BULK_RETRY_DELAYS_MS,
-      );
+      return await this.requestBulkSkippingMissing(handles);
     } catch (error) {
       const codeforcesError = toCodeforcesError(error);
       this.logFailure(codeforcesError, `${handles.length} handles`);
       throw codeforcesError;
     }
+  }
+
+  private async requestBulkSkippingMissing(
+    handles: string[],
+  ): Promise<TCodeforcesBulkResult> {
+    let pending = [...handles];
+    const renamedHandles: TCodeforcesRenamedHandle[] = [];
+    const missingHandles: string[] = [];
+
+    while (pending.length > 0) {
+      try {
+        const profiles = await this.requestWithRetry(
+          pending.join(';'),
+          CODEFORCES_BULK_RETRY_DELAYS_MS,
+        );
+        return { profiles, renamedHandles, missingHandles };
+      } catch (error) {
+        const codeforcesError = toCodeforcesError(error);
+        if (codeforcesError.type !== 'NOT_FOUND') {
+          throw codeforcesError;
+        }
+
+        const missingHandle =
+          codeforcesError.handle === null
+            ? null
+            : findHandle(pending, codeforcesError.handle);
+        if (missingHandle === null) {
+          throw new CodeforcesError(
+            'UNKNOWN',
+            `Codeforces reported a handle that was not requested as missing: ${codeforcesError.message}`,
+            codeforcesError.handle,
+          );
+        }
+
+        const skippedHandles = [
+          ...renamedHandles.map(({ from }) => from),
+          ...missingHandles,
+        ];
+        if (skippedHandles.length >= MAX_MISSING_HANDLES_PER_RUN) {
+          throw new CodeforcesError(
+            'UNKNOWN',
+            `Codeforces reported more than ${MAX_MISSING_HANDLES_PER_RUN} missing handles in one run (${[
+              ...skippedHandles,
+              missingHandle,
+            ].join(', ')})`,
+            missingHandle,
+          );
+        }
+
+        pending = pending.filter(
+          (handle) => !isSameHandle(handle, missingHandle),
+        );
+
+        const renamedHandle = await this.findRenamedHandle(missingHandle);
+        if (renamedHandle) {
+          renamedHandles.push({ from: missingHandle, to: renamedHandle });
+          if (findHandle(pending, renamedHandle) === null) {
+            pending.push(renamedHandle);
+          }
+          this.logger.warn(
+            `Codeforces handle renamed, retrying without it: ${missingHandle} -> ${renamedHandle}`,
+          );
+        } else {
+          missingHandles.push(missingHandle);
+          this.logger.warn(
+            `Codeforces handle not found, retrying without it: ${missingHandle}`,
+          );
+        }
+
+        if (pending.length > 0) {
+          await sleep(CODEFORCES_API_INTERVAL_MS);
+        }
+      }
+    }
+
+    return { profiles: [], renamedHandles, missingHandles };
   }
 
   private async requestWithRetry(
