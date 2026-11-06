@@ -1,0 +1,22 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "mazacofo",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_als"],
+  "workers_dev": false,
+  "routes": [{ "pattern": "cf.leed.at/*", "zone_name": "leed.at" }],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "mazacofo",
+      "database_id": "ec252796-6d2a-4008-a26a-f41e0fbe02c2",
+      "migrations_dir": "migrations",
+    },
+  ],
+  "vars": {
+    "MAZA_ENV": "production",
+    "SENTRY_DSN": "https://3c1748b137f2d0ce8a22f9589c0d9477@o4507556578852864.ingest.us.sentry.io/4509700977852416",
+  },
+  "observability": { "enabled": true },
+}

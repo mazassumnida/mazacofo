@@ -6,7 +6,7 @@ Codeforces rating badge generator for Github Readme
 
 ### Automatic Updates
 
-The application automatically updates Codeforces data every minute using a cron task.
+Badges are served by a Cloudflare Worker backed by D1. A profile is fetched from Codeforces the first time it is requested and refreshed in the background once it is older than an hour. If Codeforces is down, the last known rating keeps being served.
 
 ### Badge Styles
 
@@ -60,55 +60,32 @@ See [#api-endpoints](#api-endpoints) for more options.
 
 ## Development
 
-1. Clone the repository:
-
-```bash
-git clone <repository-url>
-cd mazacofo
-```
-
-2. Install dependencies:
+Requires Node.js 22 and Yarn 1.
 
 ```bash
 yarn
+yarn dev
 ```
 
-3. Create a `.env` file with your database configuration:
+Other scripts:
 
-```env
-PORT=2021
+| Script           | Purpose                                                                |
+| ---------------- | ---------------------------------------------------------------------- |
+| `yarn test`      | Run the Vitest suite inside the Workers runtime with a local D1        |
+| `yarn typecheck` | TypeScript check                                                       |
+| `yarn lint`      | ESLint                                                                 |
+| `yarn typegen`   | Regenerate `worker-configuration.d.ts` after changing `wrangler.jsonc` |
+| `yarn deploy`    | Apply D1 migrations and deploy the Worker                              |
 
-MAZA_ENV=development
-
-MYSQL_HOST=localhost
-MYSQL_USER=your_username
-MYSQL_PW=your_password
-MYSQL_DB=mazacofo
-```
-
-4. Set up the database:
-
-```bash
-# Create the database
-mysql -u your_username -p -e "CREATE DATABASE mazacofo;"
-
-# Run migrations (if needed)
-npm run migration:run
-```
-
-5. Run development server
-
-```bash
-./maza run server
-```
+Pushing to the `release` branch deploys through GitHub Actions. The workflow needs the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets.
 
 ### API Endpoints
 
 ```
-GET /?id={handle}&mini={true|false}
+GET /?id={handle}&mini=1
 ```
 
 Parameters:
 
 - `id`: Codeforces handle (required)
-- `mini`: Show mini badge (optional)
+- `mini`: Any non-empty value shows the mini badge (optional)
