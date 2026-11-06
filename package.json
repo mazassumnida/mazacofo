@@ -7,13 +7,13 @@
   "type": "module",
   "packageManager": "yarn@1.22.22",
   "scripts": {
-    "dev": "CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV=false wrangler dev --var MAZA_ENV:development",
+    "dev": "wrangler dev --var MAZA_ENV:development",
     "deploy": "wrangler d1 migrations apply DB --remote && wrangler deploy",
-    "typegen": "CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV=false wrangler types --strict-vars=false",
+    "typegen": "wrangler types --strict-vars=false",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "test": "CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV=false vitest run"
+    "test": "vitest run"
   },
   "dependencies": {
     "@sentry/cloudflare": "^11.11.0"
