@@ -31,7 +31,13 @@ canonical: `.agent/docs/current/architecture/worker-d1.md`
 ### 남은 일
 
 1. PR #8 을 `main` 에 머지하고 `release` 에 반영. `release` push 자동 배포를 쓰려면 저장소 시크릿 `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` 필요.
-2. EC2 `mazacofo` 컨테이너 정지(트래픽은 더 이상 가지 않지만 cron 이 계속 Codeforces 를 매분 호출한다), ECR 저장소, MySQL `mazacofo` DB 정리.
+2. ECR 저장소 `mazacofo`, MySQL `mazacofo` DB(387행), 정지된 컨테이너 삭제.
+
+### EC2 컨테이너 정지 (2026-11-06)
+
+- `dongzoolee-production` 의 `mazacofo` 컨테이너(이미지 `b35fc13`)를 `docker update --restart=no` 후 `docker stop`. 재부팅해도 다시 뜨지 않는다.
+- 컨테이너·이미지는 지우지 않았다. 롤백: Cloudflare 에서 `cf.leed.at/*` Worker 라우트 삭제 후 `docker update --restart=always mazacofo && docker start mazacofo`.
+- 정지 후 `cf.leed.at` 응답 재확인: 캐시된 핸들·새 핸들 200, 없는 핸들 404.
 
 ### 참고
 
