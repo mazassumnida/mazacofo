@@ -6,117 +6,28 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
-  prepare:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Set outputs
-        id: vars
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-
-      - name: Create .env file
-        run: |
-          touch .env
-
-          echo "MAZA_ENV=$MAZA_ENV" >> .env
-          echo "PORT=$PORT" >> .env
-
-          echo "MYSQL_HOST=$MYSQL_HOST" >> .env
-          echo "MYSQL_USER=$MYSQL_USER" >> .env
-          echo "MYSQL_PASSWORD=$MYSQL_PASSWORD" >> .env
-          echo "MYSQL_DB=$MYSQL_DB" >> .env
-
-          echo "SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN" >> .env
-        env:
-          MAZA_ENV: 'production'
-          PORT: ${{ secrets.PORT }}
-          MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
-          MYSQL_USER: ${{ secrets.MYSQL_USER }}
-          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-          MYSQL_DB: ${{ secrets.MYSQL_DB }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-
-      - name: Upload workspace
-        uses: actions/upload-artifact@v4
-        with:
-          name: workspace
-          include-hidden-files: true
-          path: |
-            .
-            !./node_modules
-    outputs:
-      sha_short: ${{ steps.vars.outputs.sha_short }}
-
-  build_server:
-    needs: prepare
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download workspace
-        uses: actions/download-artifact@v4
-        with:
-          name: workspace
-          path: .
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: ap-northeast-2
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and Push image to ECR
-        uses: docker/build-push-action@v6
-        env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: mazacofo
-          IMAGE_TAG: ${{ github.sha }}
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ env.IMAGE_TAG }}
-    outputs:
-      registry: ${{ steps.login-ecr.outputs.registry }}
-
   deploy:
-    needs: build_server
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to server
-        uses: appleboy/ssh-action@v1.2.0
-        env:
-          REGISTRY: ${{ needs.build_server.outputs.registry }}
-          TAG: ${{ github.sha }}
-          REPOSITORY: mazacofo
-          PORT: ${{ secrets.PORT }}
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USERNAME }}
-          passphrase: ${{ secrets.SERVER_PASSWORD }}
-          key: ${{ secrets.SSH_LEED_AT_KEY }}
-          envs: REGISTRY, TAG, REPOSITORY, PORT
-          script: |
-            aws ecr get-login-password --region ap-northeast-2 \
-              | docker login --username AWS --password-stdin 889566267001.dkr.ecr.ap-northeast-2.amazonaws.com
+          node-version: 22
+          cache: yarn
 
-            docker pull $REGISTRY/$REPOSITORY:$TAG
+      - run: yarn install --frozen-lockfile
 
-            if [ "$( docker container inspect -f '{{.ID}}' $REPOSITORY )" ]; then 
-              docker container stop $REPOSITORY
-              docker container rm $REPOSITORY -f
-            fi
-            docker run -d --name $REPOSITORY --restart=always --network=mysql_network -p $PORT:$PORT $REGISTRY/$REPOSITORY:$TAG
+      - run: yarn typecheck
 
-            docker image prune --all --force
+      - run: yarn lint
+
+      - run: yarn test
+
+      - run: yarn deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
