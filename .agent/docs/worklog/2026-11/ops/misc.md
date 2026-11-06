@@ -21,12 +21,17 @@ canonical: `.agent/docs/current/architecture/worker-d1.md`
 - 실제 Codeforces 로 로컬 workerd 스모크: 첫 조회 0.5~0.7초, 캐시 히트 1ms, 없는 핸들 404.
 - CI(`ci.yml`) 추가, 배포 워크플로를 `wrangler deploy` 로 교체.
 
-### 남은 일 (전환)
+### 운영 전환 (2026-11-06)
 
-1. GitHub 저장소 시크릿 `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` 등록.
-2. (선택) MySQL 데이터 이관: `scripts/export-legacy-clients.sql`.
-3. `release` 로 배포 → `cf.leed.at/*` 라우트가 EC2 대신 Worker 로 간다. 롤백은 Cloudflare 대시보드에서 라우트 삭제.
-4. 확인 후 EC2 `mazacofo` 컨테이너, ECR 저장소, MySQL `mazacofo` DB 정리.
+- 로컬 `yarn deploy` 로 배포했다(wrangler OAuth). D1 마이그레이션 `0001_create_profiles.sql` 적용, Worker version `ccdd3f0e-7606-4249-8ef2-dfa1206929fc`, 라우트 `cf.leed.at/*`.
+- 기존 MySQL 데이터는 옮기지 않았다(사용자 결정). 첫 조회 때 Codeforces 에서 채운다.
+- 확인: tourist/Benq/jiangly(mini) 200, 없는 핸들 404, 잘못된 id 400, `Content-Type`·`Cache-Control`·CORS 헤더 유지. 배포 직후 실사용자 요청(`vulpo`)이 D1 에 저장됐다.
+- 지연: 한국에서 `cf.leed.at` TTFB 0.8~1.8초. `colo=LAX` 로 라우팅되는 존 단위 현상이라 Worker 와 무관하다(같은 존 정적 사이트 `leed.at/` 0.6~1.2초, D1 을 안 타는 400 응답도 0.8초). GitHub camo 는 미국에서 가져가므로 실제 README 로딩에는 영향이 작다.
+
+### 남은 일
+
+1. PR #8 을 `main` 에 머지하고 `release` 에 반영. `release` push 자동 배포를 쓰려면 저장소 시크릿 `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` 필요.
+2. EC2 `mazacofo` 컨테이너 정지(트래픽은 더 이상 가지 않지만 cron 이 계속 Codeforces 를 매분 호출한다), ECR 저장소, MySQL `mazacofo` DB 정리.
 
 ### 참고
 

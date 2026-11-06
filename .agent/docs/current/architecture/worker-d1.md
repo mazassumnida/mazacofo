@@ -46,9 +46,4 @@
 - 배포: `release` 브랜치 push → `.github/workflows/deploy.yml` (typecheck, lint, test 후 `yarn deploy`). 저장소 시크릿 `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` 필요.
 - 로컬: `yarn dev`. 레거시 `.env`(MySQL)는 `CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV=false` 로 무시한다.
 - 테스트: `@cloudflare/vitest-plugin` 으로 workerd 안에서 로컬 D1 에 마이그레이션을 적용해 돈다. Codeforces 는 가짜 fetcher 로 대체.
-- 기존 MySQL 데이터 이관(선택):
-  ```bash
-  mysql -N -h <host> -u <user> -p <db> < scripts/export-legacy-clients.sql > legacy.sql
-  npx wrangler d1 execute DB --remote --file legacy.sql
-  ```
-  `refresh_at = 0` 으로 넣어 첫 조회 때 예전 값을 바로 보여주고 백그라운드로 갱신한다.
+- 기존 MySQL 데이터는 이관하지 않았다. 첫 조회 때 Codeforces 에서 다시 채운다.
