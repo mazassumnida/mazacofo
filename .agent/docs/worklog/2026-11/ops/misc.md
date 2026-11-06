@@ -28,16 +28,26 @@ canonical: `.agent/docs/current/architecture/worker-d1.md`
 - 확인: tourist/Benq/jiangly(mini) 200, 없는 핸들 404, 잘못된 id 400, `Content-Type`·`Cache-Control`·CORS 헤더 유지. 배포 직후 실사용자 요청(`vulpo`)이 D1 에 저장됐다.
 - 지연: 한국에서 `cf.leed.at` TTFB 0.8~1.8초. `colo=LAX` 로 라우팅되는 존 단위 현상이라 Worker 와 무관하다(같은 존 정적 사이트 `leed.at/` 0.6~1.2초, D1 을 안 타는 400 응답도 0.8초). GitHub camo 는 미국에서 가져가므로 실제 README 로딩에는 영향이 작다.
 
-### 남은 일
-
-1. PR #8 을 `main` 에 머지하고 `release` 에 반영. `release` push 자동 배포를 쓰려면 저장소 시크릿 `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` 필요.
-2. ECR 저장소 `mazacofo`, MySQL `mazacofo` DB(387행), 정지된 컨테이너 삭제.
-
 ### EC2 컨테이너 정지 (2026-11-06)
 
 - `dongzoolee-production` 의 `mazacofo` 컨테이너(이미지 `b35fc13`)를 `docker update --restart=no` 후 `docker stop`. 재부팅해도 다시 뜨지 않는다.
 - 컨테이너·이미지는 지우지 않았다. 롤백: Cloudflare 에서 `cf.leed.at/*` Worker 라우트 삭제 후 `docker update --restart=always mazacofo && docker start mazacofo`.
 - 정지 후 `cf.leed.at` 응답 재확인: 캐시된 핸들·새 핸들 200, 없는 핸들 404.
+
+### 레거시 흔적 전부 삭제 (2026-11-06)
+
+- 서버(`dongzoolee-production`): MySQL `mazacofo` DB 삭제(387행, 백업 없음), `mazacofo` 컨테이너·이미지 삭제, nginx `conf.d/cf-leed.conf`(`cf.leed.at` → `localhost:2021`) 삭제 후 reload.
+- AWS: ECR `mazacofo` 저장소(이미지 9개) 삭제.
+- GitHub: `SENTRY_AUTH_TOKEN` 시크릿(그 전에 사용자가 AWS·MySQL·SSH 시크릿 정리), 머지된 원격 브랜치 3개 삭제.
+- 로컬: 예전 워크트리(`.claude/worktrees/fix-codeforces-profile-error-d9c582`, 미커밋 변경 포함), 예전 로컬 브랜치·백업 브랜치, `.env`, `.env.op` 삭제. 스크립트의 `.env` 무시 설정 제거.
+- 롤백 경로는 더 이상 없다. 문제가 생기면 Worker 를 고친다.
+
+남은 것(권한 부족으로 직접 못 함):
+
+- MySQL 계정 `mazacofo@172.20.0.%`: DB 는 지웠지만 계정 삭제(`DROP USER`)는 root 권한이 필요하다. 컨테이너 env 의 `MYSQL_ROOT_PASSWORD` 는 실제 비밀번호와 다르다.
+- Sentry 크론 모니터 `update-codeforces-data`(id 6643519): 매분 missed check-in 으로 실패 이슈를 만든다. 1Password 의 Sentry 토큰은 sourcemap 전용이라 API 삭제가 403.
+- 1Password `dev-env` 의 `mazacofo.env`, `mazacofo.env (원본 2026-10-28)` 항목.
+- Cloudflare DNS `cf.leed.at` 프록시 레코드는 아직 옛 서버 IP 를 가리킨다. Worker 라우트가 가로채므로 동작에는 문제없다. origin 노출을 없애려면 `AAAA 100::`(프록시)로 바꾸면 된다.
 
 ### 참고
 
