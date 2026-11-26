@@ -43,7 +43,8 @@
 
 ## 운영
 
-- 배포: `release` 브랜치 push → `.github/workflows/deploy.yml` (typecheck, lint, test 후 `yarn deploy`). 저장소 시크릿 `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` 필요.
-- 로컬: `yarn dev` (`MAZA_ENV=development` 로 띄워 Sentry 를 끈다).
+- 배포: `release` 브랜치 push → `.github/workflows/deploy.yml` (typecheck, lint, test 후 `pnpm run deploy`). 저장소 시크릿 `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` 필요.
+- 로컬: `pnpm dev` (`MAZA_ENV=development` 로 띄워 Sentry 를 끈다).
+- 패키지 매니저: pnpm 10(hoisted). `.agent/docs/pnpm.md`.
 - 테스트: `@cloudflare/vitest-plugin` 으로 workerd 안에서 로컬 D1 에 마이그레이션을 적용해 돈다. Codeforces 는 가짜 fetcher 로 대체.
 - 기존 MySQL 데이터는 이관하지 않았다. 첫 조회 때 Codeforces 에서 다시 채운다.

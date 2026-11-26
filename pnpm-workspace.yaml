@@ -1,0 +1,6 @@
+nodeLinker: hoisted
+autoInstallPeers: false
+packageImportMethod: clone-or-copy
+onlyBuiltDependencies:
+  - esbuild
+  - workerd

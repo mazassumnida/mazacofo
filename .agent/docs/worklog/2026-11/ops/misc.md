@@ -52,3 +52,9 @@ canonical: `.agent/docs/current/architecture/worker-d1.md`
 ### 참고
 
 - 로컬 `main` 은 `origin/main` 과 갈라져 있다(로컬에만 `4f45b95`, `2636faf`, `d03e1e6`). 이 작업은 `origin/main`(`19ba307`) 기준이다.
+
+## yarn v1 → pnpm 10(hoisted) (2026-11-26)
+
+- 워크트리마다 `node_modules` 실복사본이 생기지 않게 pnpm 10.34.9 + `packageImportMethod: clone-or-copy`로 옮겼다. lock은 `pnpm import`(버전 그대로).
+- CI·배포 워크플로는 corepack + `setup-node` `cache: pnpm`. 배포 명령은 `pnpm run deploy`(`pnpm deploy`는 pnpm 내장 명령).
+- 설정·검증 결과는 `.agent/docs/pnpm.md`.

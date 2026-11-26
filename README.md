@@ -60,22 +60,22 @@ See [#api-endpoints](#api-endpoints) for more options.
 
 ## Development
 
-Requires Node.js 22 and Yarn 1.
+Requires Node.js 22 and pnpm 10 (`corepack enable` picks the pinned version).
 
 ```bash
-yarn
-yarn dev
+pnpm install
+pnpm dev
 ```
 
 Other scripts:
 
-| Script           | Purpose                                                                |
-| ---------------- | ---------------------------------------------------------------------- |
-| `yarn test`      | Run the Vitest suite inside the Workers runtime with a local D1        |
-| `yarn typecheck` | TypeScript check                                                       |
-| `yarn lint`      | ESLint                                                                 |
-| `yarn typegen`   | Regenerate `worker-configuration.d.ts` after changing `wrangler.jsonc` |
-| `yarn deploy`    | Apply D1 migrations and deploy the Worker                              |
+| Script            | Purpose                                                                |
+| ----------------- | ---------------------------------------------------------------------- |
+| `pnpm test`       | Run the Vitest suite inside the Workers runtime with a local D1        |
+| `pnpm typecheck`  | TypeScript check                                                       |
+| `pnpm lint`       | ESLint                                                                 |
+| `pnpm typegen`    | Regenerate `worker-configuration.d.ts` after changing `wrangler.jsonc` |
+| `pnpm run deploy` | Apply D1 migrations and deploy the Worker                              |
 
 Pushing to the `release` branch deploys through GitHub Actions. The workflow needs the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets.
 

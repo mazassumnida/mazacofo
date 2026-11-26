@@ -14,12 +14,24 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: yarn
 
-      - run: yarn install --frozen-lockfile
+      - name: Enable pnpm via corepack
+        run: |
+          corepack enable
+          echo "COREPACK_ENABLE_DOWNLOAD_PROMPT=0" >> "$GITHUB_ENV"
+          COREPACK_ENABLE_DOWNLOAD_PROMPT=0 pnpm --version
 
-      - run: yarn typecheck
+      - name: Restore pnpm store cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
-      - run: yarn lint
+      - run: pnpm install --frozen-lockfile
 
-      - run: yarn test
+      - run: pnpm typecheck
+
+      - run: pnpm lint
+
+      - run: pnpm test

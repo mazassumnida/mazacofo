@@ -2,3 +2,4 @@
 worker-configuration.d.ts
 .claude/
 .omx/
+pnpm-lock.yaml
